@@ -1,14 +1,15 @@
 let mapleader=","
 set hidden              " Swtich between buffers without having to save current one
-set nocompatible				" Use Vim settings, rather than Vi settings
-set confirm							" Display a confirmation dialog when closing an unsaved file
-set clipboard=unnamed		" use the system clipboard
-set path+=**						" recursive search
-inoremap jj <ESC>				" Remap the ESC key to jj
+set nocompatible	" Use Vim settings, rather than Vi settings
+set confirm		" Display a confirmation dialog when closing an unsaved file
+set clipboard=unnamed	" use the system clipboard
+set path+=**		" recursive search
+inoremap jj <ESC>	" Remap the ESC key to jj
 set conceallevel=0
 map <C-c> :BD<cr>       " Ctrl + c to delete current buffer
 set shell=zsh
 set encoding=utf-8
+syntax on
 
 " BUFFER MANAGEMENT
 " While hooping through buffers, skip the Terminal buffer
@@ -35,6 +36,7 @@ nmap <leader>bl :ls<CR>
 
 " OMNICOMPLETION
 " Turn on Omni Completion
+filetype on
 filetype plugin on
 set omnifunc=syntaxcomplete#Completions
 
@@ -63,9 +65,9 @@ set smartcase																" unless a capital is types, the casing isn't ignor
 nnoremap <leader><space> :nohlsearch<CR>    " Stop search highlighting map to ,<space>
 
 " TABS 'n SPACES
-set tabstop=2						" number of visual spaces per TAB
-set shiftwidth=2				" number of space characters inserted for indentation
-set softtabstop=2				" number of spaces in a tab while editing
+set tabstop=2				" number of visual spaces per TAB
+set shiftwidth=2			" number of space characters inserted for indentation
+set softtabstop=2			" number of spaces in a tab while editing
 set noexpandtab				" tabs are tabs, not spaces
 set autoindent
 set listchars=tab:>-,eol:¬,trail:~	" show invisibles
@@ -99,22 +101,22 @@ noremap <C-ScrollWheelRight> <nop>
 
 " USER INTERFACE CONFIGURATION
 set relativenumber			" show relative line numbers
-set number							" also show the static line number for the current line while there
-set wildmenu						" visual autocomplete for the command menu
-set showmatch						" highlight matching [{()}]
-set noshowmode					" do not display the current mode as there is vim-airline
-set pumheight=20				" Limit popup menu height
+set number				" also show the static line number for the current line while there
+set wildmenu				" visual autocomplete for the command menu
+set showmatch				" highlight matching [{()}]
+set noshowmode				" do not display the current mode as there is vim-airline
+set pumheight=20			" Limit popup menu height
 set lazyredraw
 set splitright
 set backspace=2
-set ruler								" always show the cursor position
-set noerrorbells				" disable beep on errors
+set ruler				" always show the cursor position
+set noerrorbells			" disable beep on errors
 
 " Disable screen flashing
 set visualbell
 set t_vb=
 
-set mouse=							" disable any and all mouse interactions
+set mouse=				" disable any and all mouse interactions
 
 " Highlight the current line with style
 hi CursorLine cterm=BOLD ctermbg=DarkBlue ctermfg=white guibg=darkred guifg=white
@@ -154,7 +156,7 @@ set statusline+=%f                     " File name with full path
 set statusline+=%h%m%r                 " Help file flag, modified flag, and readonly flag
 set statusline+=[%{&ff}]               " File format (unix, dos, etc.)
 set statusline+=[%{&fenc?&fenc:&enc}]  " File encoding (e.g., utf-8)
-set statusline+=%{gitBranch()}      " Git branch (if fugitive plugin is used)
+set statusline+=%{GitBranch()}         " Git branch
 set statusline+=%=%-14.(%l,%c%V%)      " Line number, column number, and virtual column
 set statusline+=%P                     " Percentage through the file
 
