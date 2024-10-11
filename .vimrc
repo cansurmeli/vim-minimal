@@ -32,8 +32,6 @@ nmap <leader>bq :bp <BAR> bd #<CR>
 " Show all open buffers and their status
 nmap <leader>bl :ls<CR>
 
-
-
 " OMNICOMPLETION
 " Turn on Omni Completion
 filetype plugin on
@@ -156,19 +154,14 @@ set statusline+=%f                     " File name with full path
 set statusline+=%h%m%r                 " Help file flag, modified flag, and readonly flag
 set statusline+=[%{&ff}]               " File format (unix, dos, etc.)
 set statusline+=[%{&fenc?&fenc:&enc}]  " File encoding (e.g., utf-8)
-set statusline+=%{FugitiveHead()}      " Git branch (if fugitive plugin is used)
+set statusline+=%{gitBranch()}      " Git branch (if fugitive plugin is used)
 set statusline+=%=%-14.(%l,%c%V%)      " Line number, column number, and virtual column
 set statusline+=%P                     " Percentage through the file
 
-" Git branch information: using fugitive or manual git command
-if exists(':Gstatus')
-    set statusline+=%{fugitive#head()}   " Use fugitive to get the Git branch
-else
-    function! GitBranch()
-        let l:branchname = system("git rev-parse --abbrev-ref HEAD 2>/dev/null")
-        return v:shell_error ? '' : trim(l:branchname)
-    endfunction
-    set statusline+=%{GitBranch()}       " Use manual git command if fugitive is not available
-endif
+function! GitBranch()
+	let l:branchname = system("git rev-parse --abbrev-ref HEAD 2>/dev/null")
+	return v:shell_error ? '' : trim(l:branchname)
+endfunction
+set statusline+=%{GitBranch()}       " Use manual git command if fugitive is not available
 highlight StatusLine guifg=#ffffff guibg=#005f87
 highlight StatusLineNC guifg=#ffffff guibg=#303030
