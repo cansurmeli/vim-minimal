@@ -1,91 +1,157 @@
+" =========================================================
+" LEAN .vimrc (no plugins)
+" =========================================================
+
 let mapleader=","
-set hidden              " Swtich between buffers without having to save current one
-set nocompatible	" Use Vim settings, rather than Vi settings
-set confirm		" Display a confirmation dialog when closing an unsaved file
-set clipboard=unnamed	" use the system clipboard
-set path+=**		" recursive search
-inoremap jj <ESC>	" Remap the ESC key to jj
+
+set nocompatible          " Use Vim settings, rather than Vi settings
+set hidden                " Switch between buffers without having to save current one
+set confirm               " Confirmation dialog when closing an unsaved file
+set clipboard=unnamed     " Use the system clipboard
+set path+=**              " Recursive search
 set conceallevel=0
-map <C-c> :BD<cr>       " Ctrl + c to delete current buffer
 set shell=zsh
 set encoding=utf-8
 syntax on
 
+" ---------------------------------------------------------
 " BUFFER MANAGEMENT
-" While hooping through buffers, skip the Terminal buffer
-" https://vi.stackexchange.com/questions/16708/switching-buffers-in-vi-while-skipping-any-terminal-in-vi-8-1#16709
+" ---------------------------------------------------------
+
+" While hopping through buffers, skip Terminal buffers
 augroup termIgnore
-	autocmd!
-	autocmd TerminalOpen * set nobuflisted
+  autocmd!
+  autocmd TerminalOpen * setlocal nobuflisted
 augroup END
 
-" To open a new empty buffer
-nmap <leader>T :enew<cr>
+" Open a new empty buffer
+nnoremap <leader>T :enew<CR>
 
-" Move to the next buffer
-nmap <leader>l :bnext<CR>
+" Move to next/previous buffer
+nnoremap <leader>l :bnext<CR>
+nnoremap <leader>p :bprevious<CR>
 
-" Move to the previous buffer
-nmap <leader>p :bprevious<CR>
-
-" Close the current buffer and move to the previous one
-nmap <leader>bq :bp <BAR> bd #<CR>
+" Close current buffer and move to previous one
+nnoremap <leader>bq :bp \| bd #<CR>
 
 " Show all open buffers and their status
-nmap <leader>bl :ls<CR>
+nnoremap <leader>bl :ls<CR>
 
+" Ctrl+c to delete current buffer (native; replaces :BD plugin command)
+nnoremap <C-c> :bp \| bd #<CR>
+
+" ---------------------------------------------------------
 " OMNICOMPLETION
-" Turn on Omni Completion
-filetype on
+" ---------------------------------------------------------
 filetype plugin on
-set omnifunc=syntaxcomplete#Completions
+" Use syntax completion only as a fallback if a filetype doesn't set omnifunc
+autocmd FileType * if &l:omnifunc ==# '' | setlocal omnifunc=syntaxcomplete#Complete | endif
+set completeopt=menuone,noselect
+set shortmess+=c
 
-" OTHER
-" Centralise the directories for the swap and backup files so they don't
-" scatter around
-set directory=$HOME/.vim/swp/
-set backupdir=$HOME/.vim/backup/
+" ---------------------------------------------------------
+" FILES: swap/backup/undo directories (keeps project dirs clean)
+" ---------------------------------------------------------
+if !isdirectory(expand('~/.vim/swp'))    | call mkdir(expand('~/.vim/swp'), 'p')    | endif
+if !isdirectory(expand('~/.vim/backup')) | call mkdir(expand('~/.vim/backup'), 'p') | endif
+if !isdirectory(expand('~/.vim/undo'))   | call mkdir(expand('~/.vim/undo'), 'p')   | endif
+
+set directory^=$HOME/.vim/swp//
+set backupdir^=$HOME/.vim/backup//
+set undofile
+set undodir=$HOME/.vim/undo//
+
+" ---------------------------------------------------------
+" INSERT MODE QUALITY OF LIFE
+" ---------------------------------------------------------
+inoremap jj <ESC>         " Remap ESC to jj
 
 " Basic curly braces completion
 inoremap {      {}<Left>
 inoremap {<CR>  {<CR>}<Esc>O
 inoremap {{     {
 inoremap {}     {}
-  
-" Mastering Vim Quickly #45
-" Move visual selection
-vnoremap J :m '>+1<cr>gv=gv
-vnoremap K :m '<-2<cr>gv=gv
 
+" Provide `hjkl` movements in Insert mode via Alt
+inoremap <A-h> <C-o>h
+inoremap <A-j> <C-o>j
+inoremap <A-k> <C-o>k
+inoremap <A-l> <C-o>l
+
+" Completion navigation when popup menu is visible
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<BS>"
+
+" ---------------------------------------------------------
+" VISUAL MODE
+" ---------------------------------------------------------
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" ---------------------------------------------------------
 " SEARCHING
-set incsearch																" find the next match as we type the search
-set hlsearch																" highlight the searches by default
-set ignorecase															" ignore case when searching
-set smartcase																" unless a capital is types, the casing isn't ignored
-nnoremap <leader><space> :nohlsearch<CR>    " Stop search highlighting map to ,<space>
+" ---------------------------------------------------------
+set incsearch
+set hlsearch
+set ignorecase
+set smartcase
+nnoremap <leader><space> :nohlsearch<CR>
 
+" ---------------------------------------------------------
 " TABS 'n SPACES
-set tabstop=2				" number of visual spaces per TAB
-set shiftwidth=2			" number of space characters inserted for indentation
-set softtabstop=2			" number of spaces in a tab while editing
-set noexpandtab				" tabs are tabs, not spaces
+" ---------------------------------------------------------
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set noexpandtab           " Tabs are tabs, not spaces
 set autoindent
-set listchars=tab:>-,eol:¬,trail:~	" show invisibles
 
+" ---------------------------------------------------------
+" INDENT / WHITESPACE VISIBILITY (plugin-free)
+" ---------------------------------------------------------
+
+" Show invisible characters (makes indentation visible)
+set list
+
+" Clearer invisibles; tab shows a marker + one trailing space
+set listchars=tab:▸\ ,eol:¬,trail:~,extends:»,precedes:«
+
+" Highlight trailing whitespace + mixed indentation (tabs+spaces at line start)
+augroup whitespace_hl
+  autocmd!
+  " Define highlight groups (re-applied on colorscheme changes)
+  autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red     guibg=red
+  autocmd ColorScheme * highlight MixedIndent     ctermbg=darkred guibg=darkred
+
+  " Apply in each window/buffer
+  autocmd BufWinEnter,WinEnter * syntax match ExtraWhitespace /\s\+$/
+  autocmd BufWinEnter,WinEnter * syntax match MixedIndent /^\(\t\+ \+\| \+\t\+\)/
+augroup END
+
+" ---------------------------------------------------------
+" LINE-LENGTH ALLOWANCE (subtle + slimmer + slightly higher)
+" ---------------------------------------------------------
+" Removed cursorcolumn (it highlights as you traverse a line)
+set nocursorcolumn
+
+" A slimmer, gentler band starting a bit later (e.g. 101-103)
+highlight ColorColumn ctermbg=238 guibg=#2a2a2a
+set colorcolumn=101,102,103
+
+" Toggles
+nnoremap <leader>cc :set colorcolumn=101,102,103<CR>
+nnoremap <leader>cC :set colorcolumn=<CR>
+
+" ---------------------------------------------------------
 " SPELLING
-" Mastering Vim Quickly #99
-" `ctrl-I` to auto-correct misspelled words
-"inoremap u[s1z=`]au
-
+" ---------------------------------------------------------
 hi clear SpellBad
 hi SpellBad cterm=underline,bold
 autocmd FileType latex,tex,md,markdown setlocal spell spelllang=en_gb
 
-" TRACKPAD BEHAVIOUR
-" Basically disable everything because:
-" - we're in Vim,
-" - even if they just stand there, it's annoying upon
-" an accidental interaction.
+" ---------------------------------------------------------
+" TRACKPAD BEHAVIOUR (disable mouse wheel & mouse)
+" ---------------------------------------------------------
 noremap <ScrollWheelUp>      <nop>
 noremap <S-ScrollWheelUp>    <nop>
 noremap <C-ScrollWheelUp>    <nop>
@@ -99,30 +165,34 @@ noremap <ScrollWheelRight>   <nop>
 noremap <S-ScrollWheelRight> <nop>
 noremap <C-ScrollWheelRight> <nop>
 
+set mouse=                 " Disable any and all mouse interactions
+
+" ---------------------------------------------------------
 " USER INTERFACE CONFIGURATION
-set relativenumber			" show relative line numbers
-set number				" also show the static line number for the current line while there
-set wildmenu				" visual autocomplete for the command menu
-set showmatch				" highlight matching [{()}]
-set noshowmode				" do not display the current mode as there is vim-airline
-set pumheight=20			" Limit popup menu height
+" ---------------------------------------------------------
+set relativenumber
+set number
+set wildmenu
+set wildmode=longest:full,full
+set showmatch
+set noshowmode
+set pumheight=20
 set lazyredraw
 set splitright
+set splitbelow
 set backspace=2
-set ruler				" always show the cursor position
-set noerrorbells			" disable beep on errors
+set ruler
+set noerrorbells
 
 " Disable screen flashing
 set visualbell
 set t_vb=
 
-set mouse=				" disable any and all mouse interactions
-
 " Highlight the current line with style
 hi CursorLine cterm=BOLD ctermbg=DarkBlue ctermfg=white guibg=darkred guifg=white
+set cursorline
 
 " Disabling the arrow keys in every mode
-" Make use of Vim instead! :]
 noremap  <Up> ""
 noremap! <Up> <Esc>
 noremap  <Down> ""
@@ -132,38 +202,68 @@ noremap! <Left> <Esc>
 noremap  <Right> ""
 noremap! <Right> <Esc>
 
-" provide `hjkl` movements in Insert mode via the <Alt> modifier key
-inoremap <A-h> <C-o>h
-inoremap <A-j> <C-o>j
-inoremap <A-k> <C-o>k
-inoremap <A-l> <C-o>l
+" Cursor Shape (terminal-dependent; harmless if unsupported)
+let &t_EI.="\e[2 q"   " Normal mode: steady block
+let &t_SI.="\e[6 q"   " Insert mode: steady bar
+let &t_SR.="\e[4 q"   " Replace mode: steady underline
 
-" Cursor Shape
-" https://vim.fandom.com/wiki/Change_cursor_shape_in_different_modes
-let &t_SI.="\e[2 q" "SI = INSERT mode
-let &t_SR.="\e[2 q" "SR = REPLACE mode
-let &t_EI.="\e[2 q" "EI = NORMAL mode (ELSE)
+" ---------------------------------------------------------
+" STATUSLINE (native, plugin-free, with caching)
+" ---------------------------------------------------------
 
-" STATUS LINE
-" Enable the status line to always be visible
 set laststatus=2
 
-" Define the status line with various components
-set statusline=
-set statusline+=%#StatusLine#          " Status line highlight group
-set statusline+=[%n]                   " Buffer number
-set statusline+=%f                     " File name with full path
-set statusline+=%h%m%r                 " Help file flag, modified flag, and readonly flag
-set statusline+=[%{&ff}]               " File format (unix, dos, etc.)
-set statusline+=[%{&fenc?&fenc:&enc}]  " File encoding (e.g., utf-8)
-set statusline+=%{GitBranch()}         " Git branch
-set statusline+=%=%-14.(%l,%c%V%)      " Line number, column number, and virtual column
-set statusline+=%P                     " Percentage through the file
-
-function! GitBranch()
-	let l:branchname = system("git rev-parse --abbrev-ref HEAD 2>/dev/null")
-	return v:shell_error ? '' : trim(l:branchname)
+" Compact mode indicator
+function! ModeLabel() abort
+  return mode() ==# 'n' ? 'N' :
+       \ mode() ==# 'i' ? 'I' :
+       \ mode() ==# 'v' ? 'V' :
+       \ mode()
 endfunction
-set statusline+=%{GitBranch()}       " Use manual git command if fugitive is not available
-highlight StatusLine guifg=#ffffff guibg=#005f87
+
+" Cached git branch (per-buffer)
+function! GitBranchCached() abort
+  if &buftype !=# '' | return '' | endif
+  if !exists('b:git_branch') || get(b:, 'git_branch_tick', -1) != b:changedtick
+    let b:git_branch_tick = b:changedtick
+    let l:dir = expand('%:p:h')
+    if l:dir ==# '' | let b:git_branch = '' | return '' | endif
+    let l:branch = system('git -C ' . shellescape(l:dir) . ' rev-parse --abbrev-ref HEAD 2>/dev/null')
+    let b:git_branch = v:shell_error ? '' : trim(l:branch)
+  endif
+  return b:git_branch ==# '' ? '' : '  ' . b:git_branch . ' '
+endfunction
+
+" Search counter label
+function! SearchCountLabel() abort
+  if !v:hlsearch | return '' | endif
+  if !exists('*searchcount') | return '' | endif
+  let l:sc = searchcount()
+  if empty(l:sc) || get(l:sc, 'total', 0) == 0 | return '' | endif
+  return '/' . @/ . ' ' . l:sc.current . '/' . l:sc.total . ' '
+endfunction
+
+" Statusline highlight groups
+highlight StatusLine   guifg=#ffffff guibg=#005f87
 highlight StatusLineNC guifg=#ffffff guibg=#303030
+highlight SLMode       guifg=#000000 guibg=#afff00
+
+" Build the statusline
+set statusline=
+set statusline+=%#SLMode#
+set statusline+=\ %{ModeLabel()}
+set statusline+=%#StatusLine#
+set statusline+=\ [%n]\ %f%h%m%r
+set statusline+=\ [%{&ff}]
+set statusline+=\ [%{&fenc?&fenc:&enc}]
+set statusline+=\ [%{&filetype}]
+set statusline+=\ %{GitBranchCached()}
+set statusline+=\ %{SearchCountLabel()}
+set statusline+=%=
+set statusline+=\ (%l,%c%V)\ %P
+
+" ---------------------------------------------------------
+" OPTIONAL: ignore common junk in command-line completion
+" ---------------------------------------------------------
+set wildignore+=*/.git/*,*/node_modules/*,*/dist/*,*/target/*,*/vendor/*
+
